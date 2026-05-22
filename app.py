@@ -15,16 +15,42 @@ app = FastAPI(
 )
 
 # --- Cross-Platform Tesseract Path Configuration ---
-if sys.platform.startswith('win'):
-    pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+# Priority 1: explicit env-var override (works on any platform/deployment)
+_tess_env = os.environ.get("TESSERACT_CMD", "")
+if _tess_env and os.path.exists(_tess_env):
+    pytesseract.pytesseract.tesseract_cmd = _tess_env
+
+elif sys.platform.startswith('win'):
+    # Windows: default Tesseract installer path
+    _win_path = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+    if os.path.exists(_win_path):
+        pytesseract.pytesseract.tesseract_cmd = _win_path
+
+elif sys.platform == 'darwin':
+    # macOS (Homebrew on Apple Silicon or Intel)
+    for _mac_path in ['/opt/homebrew/bin/tesseract', '/usr/local/bin/tesseract']:
+        if os.path.exists(_mac_path):
+            pytesseract.pytesseract.tesseract_cmd = _mac_path
+            # Point to Homebrew tessdata
+            _mac_tessdata = os.path.dirname(_mac_path).replace('/bin', '/share/tessdata')
+            if os.path.isdir(_mac_tessdata):
+                os.environ['TESSDATA_PREFIX'] = _mac_tessdata + '/'
+            break
+
 else:
-    # 1. Point to the Mac binary executable
-    mac_brew_path = '/opt/homebrew/bin/tesseract'
-    if os.path.exists(mac_brew_path):
-        pytesseract.pytesseract.tesseract_cmd = mac_brew_path
-        
-        # 2. Tell Tesseract exactly where its language data lives on your Mac
-        os.environ['TESSDATA_PREFIX'] = '/opt/homebrew/share/tessdata/'
+    # Linux (Ubuntu/Debian — used by Render, Railway, Heroku, etc.)
+    # apt-get install tesseract-ocr  →  /usr/bin/tesseract
+    for _linux_path in ['/usr/bin/tesseract', '/usr/local/bin/tesseract']:
+        if os.path.exists(_linux_path):
+            pytesseract.pytesseract.tesseract_cmd = _linux_path
+            break
+    # Set tessdata prefix for Linux (Tesseract 4/5 installed via apt)
+    for _td in ['/usr/share/tesseract-ocr/5/tessdata',
+                '/usr/share/tesseract-ocr/4.00/tessdata',
+                '/usr/share/tessdata']:
+        if os.path.isdir(_td):
+            os.environ['TESSDATA_PREFIX'] = _td
+            break
 
 
 class PanCardEngine:
