@@ -6,12 +6,21 @@ import os
 import sys
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 # Initialize FastAPI App
 app = FastAPI(
     title="Automated PAN Card Reader API",
     description="Production-grade OCR service for extracting metadata from Indian PAN Cards.",
     version="1.0.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # --- Cross-Platform Tesseract Path Configuration ---
