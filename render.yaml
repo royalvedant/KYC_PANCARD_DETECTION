@@ -1,9 +1,0 @@
-services:
-  - type: web
-    name: kyc-pancard-detection
-    runtime: python
-    buildCommand: "apt-get update && apt-get install -y tesseract-ocr tesseract-ocr-eng && pip install -r requirements.txt"
-    startCommand: "uvicorn app:app --host 0.0.0.0 --port $PORT"
-    envVars:
-      - key: TESSDATA_PREFIX
-        value: /usr/share/tesseract-ocr/5/tessdata

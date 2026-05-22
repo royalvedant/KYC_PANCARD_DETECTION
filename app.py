@@ -411,6 +411,8 @@ ocr_engine = PanCardEngine()
 async def get_background_video():
     video_path = os.path.join(os.path.dirname(__file__), "luma.mp4")
     if not os.path.exists(video_path):
+        video_path = os.path.join(os.path.dirname(__file__), "Luma.mp4")
+    if not os.path.exists(video_path):
         raise HTTPException(status_code=404, detail="Background video not found.")
     return FileResponse(video_path, media_type="video/mp4")
 
@@ -531,11 +533,11 @@ async def get_web_interface():
             .field-row{background:rgba(0,245,255,0.025);border:1px solid rgba(0,245,255,0.08);border-radius:12px;padding:10px 14px;transition:border-color .25s;}
             .field-row:hover{border-color:rgba(0,245,255,0.18);}
             .field-label{font-size:9.5px;font-family:'Share Tech Mono',monospace;letter-spacing:0.12em;color:rgba(0,245,255,0.5);text-transform:uppercase;margin-bottom:4px;}
-            .field-value{font-size:0.88rem;font-weight:600;color:#f1f5f9;}
-            .field-value.mono{font-family:'Share Tech Mono',monospace;font-size:0.98rem;letter-spacing:0.12em;color:var(--cyan);}
+            .field-value{font-size:0.88rem;font-weight:600;color:var(--green);}
+            .field-value.mono{font-family:'Share Tech Mono',monospace;font-size:0.98rem;letter-spacing:0.12em;color:var(--green);}
             .field-value.green{color:var(--green);}
             .acc-wrap{display:flex;align-items:center;gap:10px;margin-top:4px;}
-            .acc-val{font-family:'Share Tech Mono',monospace;font-size:0.98rem;color:var(--cyan);font-weight:700;min-width:46px;}
+            .acc-val{font-family:'Share Tech Mono',monospace;font-size:0.98rem;color:var(--green);font-weight:700;min-width:46px;}
             .acc-track{flex-grow:1;height:6px;background:rgba(0,245,255,0.07);border-radius:4px;overflow:hidden;border:1px solid rgba(0,245,255,0.08);}
             .acc-fill{height:100%;border-radius:4px;transition:width .85s cubic-bezier(.22,1,.36,1);width:0%;}
             /* Footer */
@@ -650,7 +652,7 @@ async def get_web_interface():
                                 </div>
                                 <div class="field-row">
                                     <div class="field-label">Date of Birth</div>
-                                    <div id="resDob" class="field-value mono" style="color:#f1f5f9;letter-spacing:.06em;">---</div>
+                                    <div id="resDob" class="field-value mono" style="color:var(--green);letter-spacing:.06em;">---</div>
                                 </div>
                             </div>
                         </div>

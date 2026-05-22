@@ -7,21 +7,27 @@ RUN apt-get update && apt-get install -y \
     tesseract-ocr-eng \
     && rm -rf /var/lib/apt/lists/*
 
-# Set the working directory in the container
-WORKDIR /app
+# Set up a new user named "user" with UID 1000 to comply with Hugging Face guidelines
+RUN useradd -m -u 1000 user
+USER user
+ENV HOME=/home/user \
+    PATH=/home/user/.local/bin:$PATH
 
-# Copy the requirements file into the container
-COPY requirements.txt .
+# Set the working directory in the user's home directory
+WORKDIR $HOME/app
 
-# Install python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy requirements and install dependencies
+COPY --chown=user requirements.txt .
+RUN pip install --no-cache-dir --user -r requirements.txt
 
-# Copy the rest of the application code
-COPY app.py .
-COPY Luma.mp4 .
+# Copy application files
+# We use a wildcard pattern Luma.mp[4] so the COPY command does not fail
+# if the large video file was omitted from the git repository.
+COPY --chown=user app.py .
+COPY --chown=user Luma.mp[4] ./
 
-# Expose port 8000
-EXPOSE 8000
+# Expose port 7860 (Hugging Face Spaces default)
+EXPOSE 7860
 
-# Start the application
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+# Start the application using a shell to resolve the PORT environment variable if present
+CMD ["sh", "-c", "uvicorn app:app --host 0.0.0.0 --port ${PORT:-7860}"]
