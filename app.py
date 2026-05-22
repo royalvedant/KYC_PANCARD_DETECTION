@@ -6,7 +6,6 @@ import os
 import sys
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
-from fastapi.middleware.cors import CORSMiddleware
 
 # Initialize FastAPI App
 app = FastAPI(
@@ -15,51 +14,17 @@ app = FastAPI(
     version="1.0.0"
 )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 # --- Cross-Platform Tesseract Path Configuration ---
-# Priority 1: explicit env-var override (works on any platform/deployment)
-_tess_env = os.environ.get("TESSERACT_CMD", "")
-if _tess_env and os.path.exists(_tess_env):
-    pytesseract.pytesseract.tesseract_cmd = _tess_env
-
-elif sys.platform.startswith('win'):
-    # Windows: default Tesseract installer path
-    _win_path = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
-    if os.path.exists(_win_path):
-        pytesseract.pytesseract.tesseract_cmd = _win_path
-
-elif sys.platform == 'darwin':
-    # macOS (Homebrew on Apple Silicon or Intel)
-    for _mac_path in ['/opt/homebrew/bin/tesseract', '/usr/local/bin/tesseract']:
-        if os.path.exists(_mac_path):
-            pytesseract.pytesseract.tesseract_cmd = _mac_path
-            # Point to Homebrew tessdata
-            _mac_tessdata = os.path.dirname(_mac_path).replace('/bin', '/share/tessdata')
-            if os.path.isdir(_mac_tessdata):
-                os.environ['TESSDATA_PREFIX'] = _mac_tessdata + '/'
-            break
-
+if sys.platform.startswith('win'):
+    pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 else:
-    # Linux (Ubuntu/Debian — used by Render, Railway, Heroku, etc.)
-    # apt-get install tesseract-ocr  →  /usr/bin/tesseract
-    for _linux_path in ['/usr/bin/tesseract', '/usr/local/bin/tesseract']:
-        if os.path.exists(_linux_path):
-            pytesseract.pytesseract.tesseract_cmd = _linux_path
-            break
-    # Set tessdata prefix for Linux (Tesseract 4/5 installed via apt)
-    for _td in ['/usr/share/tesseract-ocr/5/tessdata',
-                '/usr/share/tesseract-ocr/4.00/tessdata',
-                '/usr/share/tessdata']:
-        if os.path.isdir(_td):
-            os.environ['TESSDATA_PREFIX'] = _td
-            break
+    # 1. Point to the Mac binary executable
+    mac_brew_path = '/opt/homebrew/bin/tesseract'
+    if os.path.exists(mac_brew_path):
+        pytesseract.pytesseract.tesseract_cmd = mac_brew_path
+        
+        # 2. Tell Tesseract exactly where its language data lives on your Mac
+        os.environ['TESSDATA_PREFIX'] = '/opt/homebrew/share/tessdata/'
 
 
 class PanCardEngine:
@@ -888,10 +853,6 @@ async def scan_pan_card(file: UploadFile = File(...)):
 # --- UNIFIED STARTUP CONTROLLER LOGIC ---
 if __name__ == "__main__":
     import uvicorn
-    # Deployment platforms (Render, Railway, Heroku, etc.) inject PORT as an
-    # environment variable and require the server to bind on 0.0.0.0.
-    port = int(os.environ.get("PORT", 8000))
-    host = "0.0.0.0"
-    print(f"\n🚀 Starting Full-Stack Application Gateway on http://{host}:{port}")
-    print("👉 Open your browser to the public URL to interact with the visual interface!\n")
-    uvicorn.run("app:app", host=host, port=port, reload=False)
+    print("\n🚀 Starting Full-Stack Application Gateway on http://127.0.0.1:8000")
+    print("👉 Open your browser to http://127.0.0.1:8000 to interact with the visual interface!\n")
+    uvicorn.run("app:app", host="127.0.0.1", port=8000, reload=True)

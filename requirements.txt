@@ -1,6 +1,6 @@
-fastapi==0.128.8
-uvicorn==0.39.0
-numpy==2.0.2
-opencv-python-headless==4.13.0.92
-pytesseract==0.3.13
-python-multipart==0.0.20
+fastapi>=0.100.0
+uvicorn>=0.22.0
+python-multipart>=0.0.6
+opencv-python-headless>=4.8.0
+numpy>=1.24.0
+pytesseract>=0.3.10
